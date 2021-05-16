@@ -15,8 +15,23 @@ experiment = Experiment(workspace=ws,
 # run an experiment using start_logging method (there are other methods) (this is syncronouse and keeps the experiment running unless you stop it)
 new_run = experiment.start_logging()
 
-# do the experiment here!
+# do the experiment here! 
+
+df = az_dataset.to_pandas_dataframe()
+
+#count the observations
+total_observations = len(df)
+
+#count the null/missing values
+nulldf = df.isnull().sum()
+
+#log the metrics to the workspace
+
+new_run.log("Total Observations",total_observations)
+
+for columns in df.columns:
+    new_run.log(columns, nulldf[columns])
+
 
 # Complete/stop an experiment run
-
 new_run.complete()
