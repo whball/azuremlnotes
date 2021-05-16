@@ -1,0 +1,22 @@
+from azureml.core import Workspace, Dataset, Datastore, Experiment
+
+# access the Workspace, Datastore, and Datasets
+
+ws = Workspace.from_config(path="./config")
+az_store = Datastore.get(ws,"azurewhbwhbmlstorage01")
+az_dataset = Dataset.get_by_name(ws,"loan applications using sdk")
+az_default_store = ws.get_default_datastore()
+
+# create/access an experiment object
+
+experiment = Experiment(workspace=ws,
+                        name="Loan-SDK-Exp01")
+
+# run an experiment using start_logging method (there are other methods) (this is syncronouse and keeps the experiment running unless you stop it)
+new_run = experiment.start_logging()
+
+# do the experiment here!
+
+# Complete/stop an experiment run
+
+new_run.complete()
