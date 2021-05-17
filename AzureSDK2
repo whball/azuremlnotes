@@ -1,0 +1,38 @@
+from azureml.core import Workspace, Dataset, Datastore, Experiment
+from azureml.core import Run
+
+# access the Workspace, Datastore, and Datasets
+
+ws = Workspace.from_config(path="./config")
+az_store = Datastore.get(ws,"azurewhbwhbmlstorage01")
+az_dataset = Dataset.get_by_name(ws,"loan applications using sdk")
+az_default_store = ws.get_default_datastore()
+
+# get the context of the experiment run
+
+new_run = Run.get_context()
+
+# do the experiment here! 
+
+df = az_dataset.to_pandas_dataframe()
+
+#count the observations
+total_observations = len(df)
+
+#count the null/missing values
+nulldf = df.isnull().sum()
+
+# create a new dataframe with new features and write to outputs folder
+new_df = df[["Gender","Married","Education", "Loan_Status"]]
+new_df.to_csv("./outputs/Loan_trunc.csv", index=False)
+
+#log the metrics to the workspace
+
+new_run.log("Total Observations",total_observations)
+
+for columns in df.columns:
+    new_run.log(columns, nulldf[columns])
+
+
+# Complete/stop an experiment run
+new_run.complete()
