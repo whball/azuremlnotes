@@ -1,0 +1,73 @@
+from azureml.core import Workspace, Run
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import confusion_matrix
+
+#access the workspace
+ws = Workspace.from_config(path="./config")
+
+#get the context of the experiment run
+new_run = Run.get_context()
+
+#do your stuff here
+#load the data from the local files
+df = pd.read_csv("./LoanData.csv")
+
+#select columns from the dataset
+LoanPrep = df[["Married","Education","Self_Employed","ApplicatIncome","LoanAmount","Loan_Amount_Term","Credit_History","Loan_Status"]]
+
+# clean missing data
+LoanPrep = LoanPrep.dropna()
+
+#create dummy variables
+LoanPrep = pd.get_dummies(LoanPrep,drop_first=True)
+
+#create X and Y - similar to "edit columns" in Train Module
+Y = LoanPrep[['Loan_Status_Y']]
+X = LoanPrep.drop(["Loan_Status_Y"], axis=1)
+
+#split data
+X_train, X_test, Y_train, Y_test = train_test_split(X,Y, test_size=0.3,random_state=1234)
+
+#build the logistic regression object
+lr = LogisticRegression
+
+#fit the data to the LR object (train model)
+lr.fit(X_train,Y_train)
+
+#predict the outcomes use test (score model)
+Y_predict = lr.predict(X_test)
+
+# get the probability score - scored probabilities
+y_prob = lr.predict_proba(X_test[:,1])
+
+#get confusion matrix and accuracy/score (evaluate)
+cm = confusion_matrix(Y_test,Y_predict)
+score = lr.score(X_test,Y_test)
+
+#logging the metrics and complete the run
+
+new_run.log("TotalObservations", len(df))
+new_run.log("ConfusionMatrix",cm)
+new_run.log("Score",score)
+
+#Create the scored dataset and upload to output, need to recreate the index
+#test data - X_test
+#actual Y = Y_test
+#scored label
+#scored probabilities
+
+X_test = X_test.reset_index(drop=True)
+Y_test = Y_test.reset_index(drop=True)
+
+Y_prob_df = pd.DataFrame(y_prob, columns=["Scored Probabilities"])
+Y_predict_df = pd.DataFrame(Y_predict, columns=["Scored Label"])
+
+scored_dataset = pd.concat([X_test,Y_test,Y_predict_df,Y_prob_df],axis=1)
+
+#upload the scored dataset
+scored_dataset.to_csv("./outputs/Loan_score.csv")
+
+#compelte the run
+new_run.complete()
