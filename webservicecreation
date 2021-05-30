@@ -1,8 +1,8 @@
-# -----------------------------------------------------
+# ----------------------------------------------------
 # This script will submit the experiment run to the 
 # local compute target and create the pkl files for
 # column index object as well as the trained model.
-# -----------------------------------------------------
+# ----------------------------------------------------
 
 # -----------------------------------------------------
 # Import required classes from Azureml
